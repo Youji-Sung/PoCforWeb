@@ -6,9 +6,26 @@
       "Bash(npx tsc:*)",
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(dotnet --version)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet new:*)",
+      "Bash(curl:*)",
+      "Bash(npx wait-on:*)",
+      "Bash(npx electron:*)",
+      "Bash(taskkill:*)",
+      "Read(c:\\Users\\User\\OneDrive - GENORAY\\그림\\스크린샷/**)",
+      "Bash(dotnet:*)",
+      "Bash(NODE_ENV=production electron .)",
+      "Bash(set NODE_ENV=production)",
+      "Read(c:\\Users\\User\\OneDrive - GENORAY\\그림\\스크린샷/**)",
+      "Bash(dir dist)",
+      "Bash(dir:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "D:\\d\\PoC"
+    ]
   }
 }

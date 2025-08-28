@@ -1,0 +1,13 @@
+D:\PoC\backend\bin\Release\net8.0\publish\MedicalImageApi.exe
+D:\PoC\backend\bin\Release\net8.0\publish\MedicalImageApi.dll
+D:\PoC\backend\bin\Release\net8.0\publish\MedicalImageApi.deps.json
+D:\PoC\backend\bin\Release\net8.0\publish\MedicalImageApi.runtimeconfig.json
+D:\PoC\backend\bin\Release\net8.0\publish\MedicalImageApi.pdb
+D:\PoC\backend\bin\Release\net8.0\publish\Microsoft.AspNetCore.OpenApi.dll
+D:\PoC\backend\bin\Release\net8.0\publish\Microsoft.OpenApi.dll
+D:\PoC\backend\bin\Release\net8.0\publish\Microsoft.Win32.SystemEvents.dll
+D:\PoC\backend\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.Swagger.dll
+D:\PoC\backend\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\PoC\backend\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\PoC\backend\bin\Release\net8.0\publish\System.Drawing.Common.dll
+D:\PoC\backend\bin\Release\net8.0\publish\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll

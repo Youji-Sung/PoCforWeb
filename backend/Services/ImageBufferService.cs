@@ -7,6 +7,8 @@ namespace MedicalImageApi.Services
     {
         private PerformanceMetrics _lastMetrics = new();
         private readonly ILogger<ImageBufferService> _logger;
+        private int _frameCounter = 0;
+        private PlaybackState _playbackState = PlaybackState.Stopped;
 
         public ImageBufferService(ILogger<ImageBufferService> logger)
         {
@@ -125,46 +127,33 @@ namespace MedicalImageApi.Services
         {
             return await Task.Run(() =>
             {
-                var data = new byte[width * height * channels];
-                var time = DateTime.Now.Millisecond * 0.001;
+                int frame = _frameCounter;
+                int bytesPerPixel = channels;
+                int stride = width * bytesPerPixel;
+                byte[] buffer = new byte[stride * height];
 
-                Parallel.For(0, height, y =>
+                for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        var normalizedX = (double)x / width;
-                        var normalizedY = (double)y / height;
+                        int index = (y * stride) + (x * bytesPerPixel);
 
-                        // Animated wave patterns
-                        var wave1 = Math.Sin(normalizedX * 20 + time * 2) * 0.5 + 0.5;
-                        var wave2 = Math.Sin(normalizedY * 15 + time * 1.5) * 0.5 + 0.5;
-                        var wave3 = Math.Sin((normalizedX + normalizedY) * 10 + time) * 0.5 + 0.5;
-
-                        // Radial gradient from center
-                        var centerX = normalizedX - 0.5;
-                        var centerY = normalizedY - 0.5;
-                        var distance = Math.Sqrt(centerX * centerX + centerY * centerY);
-                        var radial = Math.Cos(distance * 10 + time * 3) * 0.5 + 0.5;
-
-                        var baseIndex = (y * width + x) * channels;
-
-                        if (channels >= 3)
-                        {
-                            data[baseIndex] = (byte)((wave1 * radial) * 255);     // Red
-                            data[baseIndex + 1] = (byte)((wave2 * radial) * 255); // Green  
-                            data[baseIndex + 2] = (byte)((wave3 * radial) * 255); // Blue
-                            if (channels == 4)
-                                data[baseIndex + 3] = 255; // Alpha
-                        }
-                        else
-                        {
-                            // Grayscale
-                            data[baseIndex] = (byte)((wave1 * radial) * 255);
-                        }
+                        // BGRA 형식 (Blue, Green, Red, Alpha) - WPF와 동일한 패턴
+                        buffer[index] = (byte)(_frameCounter % 256);           // Blue - 시간 기반 변화
+                        buffer[index + 1] = (byte)((y + _frameCounter) % 256); // Green - y축 기반 그라디언트 + 시간
+                        buffer[index + 2] = (byte)((x + _frameCounter) % 256); // Red - x축 기반 그라디언트 + 시간
+                        if (channels == 4)
+                            buffer[index + 3] = 255; // Alpha - 완전 불투명
                     }
-                });
+                }
 
-                return data;
+                // Playing 상태일 때만 프레임 카운터를 증가시킵니다.
+                if (_playbackState == PlaybackState.Playing)
+                {
+                    _frameCounter++;
+                }
+
+                return buffer;
             });
         }
 
@@ -198,6 +187,37 @@ namespace MedicalImageApi.Services
         public PerformanceMetrics GetLastGenerationMetrics()
         {
             return _lastMetrics;
+        }
+
+        public void ResetFrameCounter()
+        {
+            _frameCounter = 0;
+        }
+
+        public void Play()
+        {
+            _playbackState = PlaybackState.Playing;
+        }
+
+        public void Pause()
+        {
+            _playbackState = PlaybackState.Paused;
+        }
+
+        public void Stop()
+        {
+            _playbackState = PlaybackState.Stopped;
+            _frameCounter = 0;
+        }
+
+        public PlaybackState GetPlaybackStatus()
+        {
+            return _playbackState;
+        }
+
+        public int GetCurrentFrame()
+        {
+            return _frameCounter;
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "20Euv7tDkedNkttwzCbDtUfcpHW1BChm61bmWuDLUTU=",
+  "Source": "MedicalImageApi",
+  "BasePath": "_content/MedicalImageApi",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

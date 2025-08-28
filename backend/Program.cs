@@ -15,10 +15,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ElectronApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "file://")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180", "file://")
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .SetIsOriginAllowedToReturnTrue();
+              .AllowAnyMethod();
     });
 });
 
@@ -36,6 +35,6 @@ app.UseRouting();
 app.MapControllers();
 
 // Configure to run on specific port
-app.Urls.Add("http://localhost:5174");
+app.Urls.Add("http://localhost:5175");
 
 app.Run();

@@ -193,6 +193,19 @@ export class WebGLRenderer {
     
     gl.bindTexture(gl.TEXTURE_2D, this.texture)
     
+    // Backend generates BGRA data, but WebGL expects RGBA
+    // Convert BGRA to RGBA by swapping red and blue channels
+    let textureData = buffer.data
+    if (buffer.channels === 4) {
+      textureData = new Uint8Array(buffer.data.length)
+      for (let i = 0; i < buffer.data.length; i += 4) {
+        textureData[i] = buffer.data[i + 2]     // R = original B
+        textureData[i + 1] = buffer.data[i + 1] // G = original G  
+        textureData[i + 2] = buffer.data[i]     // B = original R
+        textureData[i + 3] = buffer.data[i + 3] // A = original A
+      }
+    }
+    
     const format = buffer.channels === 1 ? gl.RED : 
                    buffer.channels === 3 ? gl.RGB : gl.RGBA
     const internalFormat = buffer.channels === 1 ? gl.R8 :
@@ -207,7 +220,7 @@ export class WebGLRenderer {
       0,
       format,
       gl.UNSIGNED_BYTE,
-      buffer.data
+      textureData
     )
   }
 

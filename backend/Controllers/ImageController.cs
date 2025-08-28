@@ -105,5 +105,88 @@ namespace MedicalImageApi.Controllers
                 version = "1.0.0"
             });
         }
+
+        [HttpPost("reset")]
+        public ActionResult ResetFrameCounter()
+        {
+            try
+            {
+                _imageBufferService.ResetFrameCounter();
+                _logger.LogInformation("Frame counter reset");
+                return Ok(new { message = "Frame counter reset successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resetting frame counter");
+                return StatusCode(500, "Internal server error while resetting frame counter");
+            }
+        }
+
+        [HttpPost("play")]
+        public ActionResult Play()
+        {
+            try
+            {
+                _imageBufferService.Play();
+                _logger.LogInformation("Animation started");
+                return Ok(new { status = "playing", message = "Animation started successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting animation");
+                return StatusCode(500, "Internal server error while starting animation");
+            }
+        }
+
+        [HttpPost("pause")]
+        public ActionResult Pause()
+        {
+            try
+            {
+                _imageBufferService.Pause();
+                _logger.LogInformation("Animation paused");
+                return Ok(new { status = "paused", message = "Animation paused successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error pausing animation");
+                return StatusCode(500, "Internal server error while pausing animation");
+            }
+        }
+
+        [HttpPost("stop")]
+        public ActionResult Stop()
+        {
+            try
+            {
+                _imageBufferService.Stop();
+                _logger.LogInformation("Animation stopped");
+                return Ok(new { status = "stopped", message = "Animation stopped successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error stopping animation");
+                return StatusCode(500, "Internal server error while stopping animation");
+            }
+        }
+
+        [HttpGet("status")]
+        public ActionResult GetPlaybackStatus()
+        {
+            try
+            {
+                var status = _imageBufferService.GetPlaybackStatus();
+                return Ok(new { 
+                    status = status.ToString().ToLower(),
+                    frameCounter = _imageBufferService.GetCurrentFrame(),
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting playback status");
+                return StatusCode(500, "Internal server error while getting playback status");
+            }
+        }
     }
 }

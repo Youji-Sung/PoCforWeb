@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { PerformanceMetrics, ImageBuffer, BufferSize, RenderStats } from '../types'
 
+type PlaybackState = 'stopped' | 'playing' | 'paused'
+
 interface ImageStore {
   bufferSize: BufferSize
   imageBuffer: ImageBuffer | null
@@ -10,6 +12,8 @@ interface ImageStore {
   isRendering: boolean
   isGeneratingBuffer: boolean
   vsyncEnabled: boolean
+  playbackState: PlaybackState
+  currentFrame: number
   
   setBufferSize: (size: BufferSize) => void
   setImageBuffer: (buffer: ImageBuffer | null) => void
@@ -18,6 +22,8 @@ interface ImageStore {
   setIsRendering: (rendering: boolean) => void
   setIsGeneratingBuffer: (generating: boolean) => void
   setVSyncEnabled: (enabled: boolean) => void
+  setPlaybackState: (state: PlaybackState) => void
+  setCurrentFrame: (frame: number) => void
   resetMetrics: () => void
 }
 
@@ -44,6 +50,8 @@ export const useImageStore = create<ImageStore>()(
     isRendering: false,
     isGeneratingBuffer: false,
     vsyncEnabled: false, // Default to raw FPS mode
+    playbackState: 'stopped',
+    currentFrame: 0,
 
     setBufferSize: (size) => {
       set({ bufferSize: size })
@@ -82,6 +90,14 @@ export const useImageStore = create<ImageStore>()(
 
     setVSyncEnabled: (enabled) => {
       set({ vsyncEnabled: enabled })
+    },
+
+    setPlaybackState: (state) => {
+      set({ playbackState: state })
+    },
+
+    setCurrentFrame: (frame) => {
+      set({ currentFrame: frame })
     },
 
     resetMetrics: () => {

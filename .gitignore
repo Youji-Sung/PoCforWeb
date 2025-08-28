@@ -24,3 +24,12 @@ build/
 /electron-builder.yml
 /electron-builder.json
 /out/
+
+# 빌드 결과물 무시
+/release/
+/dist/
+/build/
+/out/
+*.exe
+*.dll
+*.zip

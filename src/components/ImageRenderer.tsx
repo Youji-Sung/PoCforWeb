@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react'
 import { WebGLRenderer } from '../webgl/WebGLRenderer'
 import { useImageStore } from '../store/imageStore'
-import { generateTestBuffer } from '../utils/bufferGenerator'
+import { imageApiService } from '../services/imageApiService'
 
 const ImageRenderer: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -19,7 +19,10 @@ const ImageRenderer: React.FC = () => {
     updateRenderStats,
     setIsRendering,
     isGeneratingBuffer,
-    vsyncEnabled
+    vsyncEnabled,
+    playbackState,
+    setPlaybackState,
+    setCurrentFrame
   } = useImageStore()
 
   const updateBuffer = useCallback(async () => {
@@ -32,23 +35,35 @@ const ImageRenderer: React.FC = () => {
     const quadCount = bufferSize === '1000x1000' ? 4 : 
                       bufferSize === '2000x2000' ? 16 : 64
     
-    const startTime = performance.now()
-    const buffer = generateTestBuffer(width, height)
-    const bufferUpdateTime = performance.now() - startTime
+    try {
+      const startTime = performance.now()
+      
+      // Check backend status and sync with store
+      const status = await imageApiService.getStatus()
+      setPlaybackState(status.status as 'stopped' | 'playing' | 'paused')
+      setCurrentFrame(status.frameCounter)
+      
+      // Generate image buffer from backend API
+      const buffer = await imageApiService.generateTestImage(bufferSize)
+      const bufferUpdateTime = performance.now() - startTime
 
-    setImageBuffer(buffer)
-    rendererRef.current.updateTexture(buffer)
-    rendererRef.current.updateGeometry(quadCount)
-    
-    // Update render stats with new quad count
-    const stats = rendererRef.current.getRenderStats()
-    updateRenderStats({
-      triangles: stats.triangles,
-      drawCalls: stats.drawCalls
-    })
-    
-    updatePerformanceMetrics({ bufferUpdateTime })
-  }, [bufferSize, setImageBuffer, updatePerformanceMetrics, updateRenderStats, isGeneratingBuffer])
+      setImageBuffer(buffer)
+      rendererRef.current.updateTexture(buffer)
+      rendererRef.current.updateGeometry(quadCount)
+      
+      // Update render stats with new quad count
+      const stats = rendererRef.current.getRenderStats()
+      updateRenderStats({
+        triangles: stats.triangles,
+        drawCalls: stats.drawCalls
+      })
+      
+      updatePerformanceMetrics({ bufferUpdateTime })
+    } catch (error) {
+      console.error('Failed to update buffer from backend:', error)
+      // Optionally show error to user or fallback to local generation
+    }
+  }, [bufferSize, setImageBuffer, updatePerformanceMetrics, updateRenderStats, isGeneratingBuffer, setPlaybackState, setCurrentFrame])
 
   const animateVSync = useCallback((currentTime: number) => {
     if (!rendererRef.current) return
@@ -61,12 +76,12 @@ const ImageRenderer: React.FC = () => {
     // Update FPS more frequently for better accuracy
     if (currentTime - fpsUpdateTime.current >= 100) {
       const actualTimeDiff = currentTime - fpsUpdateTime.current
-      const fps = (frameCount.current * 1000) / actualTimeDiff
+      const fps = playbackState === 'playing' ? (frameCount.current * 1000) / actualTimeDiff : 0
       
       updatePerformanceMetrics({
         fps: parseFloat(fps.toFixed(1)),
         frameTime: parseFloat(deltaTime.toFixed(2)),
-        totalFrames: frameCount.current
+        totalFrames: playbackState === 'playing' ? frameCount.current : 0
       })
       
       frameCount.current = 0
@@ -90,8 +105,15 @@ const ImageRenderer: React.FC = () => {
       frameTime: parseFloat(totalFrameTime.toFixed(3))
     })
 
-    animationRef.current = requestAnimationFrame(animateVSync)
-  }, [updatePerformanceMetrics])
+    // Update buffer every few frames when playing
+    if (frameCount.current % 60 === 0) {
+      updateBuffer()
+    }
+
+    if (playbackState === 'playing') {
+      animationRef.current = requestAnimationFrame(animateVSync)
+    }
+  }, [updatePerformanceMetrics, playbackState])
 
   const animateRaw = useCallback(() => {
     if (!rendererRef.current) return
@@ -105,12 +127,12 @@ const ImageRenderer: React.FC = () => {
     // Update FPS every 50ms for more responsive raw FPS display
     if (currentTime - fpsUpdateTime.current >= 50) {
       const actualTimeDiff = currentTime - fpsUpdateTime.current
-      const fps = (frameCount.current * 1000) / actualTimeDiff
+      const fps = playbackState === 'playing' ? (frameCount.current * 1000) / actualTimeDiff : 0
       
       updatePerformanceMetrics({
         fps: parseFloat(fps.toFixed(1)),
         frameTime: parseFloat(deltaTime.toFixed(2)),
-        totalFrames: frameCount.current
+        totalFrames: playbackState === 'playing' ? frameCount.current : 0
       })
       
       frameCount.current = 0
@@ -134,9 +156,16 @@ const ImageRenderer: React.FC = () => {
       frameTime: parseFloat(totalFrameTime.toFixed(3))
     })
 
+    // Update buffer every few frames when playing
+    if (frameCount.current % 30 === 0) {
+      updateBuffer()
+    }
+
     // Use setTimeout(0) for unlimited FPS (no V-Sync)
-    animationRef.current = setTimeout(animateRaw, 0) as any
-  }, [updatePerformanceMetrics])
+    if (playbackState === 'playing') {
+      animationRef.current = setTimeout(animateRaw, 0) as any
+    }
+  }, [updatePerformanceMetrics, playbackState])
 
   const startAnimation = useCallback(() => {
     if (animationRef.current) {
@@ -220,9 +249,22 @@ const ImageRenderer: React.FC = () => {
     // Restart animation when V-Sync mode changes
     if (rendererRef.current) {
       stopAnimation()
-      startAnimation()
+      if (playbackState === 'playing') {
+        startAnimation()
+      }
     }
-  }, [vsyncEnabled, startAnimation, stopAnimation])
+  }, [vsyncEnabled, startAnimation, stopAnimation, playbackState])
+
+  useEffect(() => {
+    // Start/stop animation based on playback state
+    if (rendererRef.current) {
+      if (playbackState === 'playing') {
+        startAnimation()
+      } else {
+        stopAnimation()
+      }
+    }
+  }, [playbackState, startAnimation, stopAnimation])
 
   useEffect(() => {
     return () => {

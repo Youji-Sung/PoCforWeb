@@ -26,6 +26,7 @@
     "wait-on": "^7.0.0"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "electron-is-dev": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -33,5 +34,29 @@
   },
   "homepage": "./",
   "author": "Medical Device Team",
-  "license": "MIT"
+  "license": "MIT",
+  "build": {
+    "appId": "com.medical.image-renderer",
+    "productName": "Medical Image Renderer PoC",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/electron/main.js",
+      "dist/*.html",
+      "dist/assets/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/bin/Release/net8.0/publish",
+        "to": "backend"
+      }
+    ],
+    "win": {
+      "target": "dir"
+    },
+    "nsis": false
+  }
 }
